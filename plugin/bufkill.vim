@@ -182,33 +182,40 @@ if !exists('g:BufKillVerbose')
   let g:BufKillVerbose = 1
 endif
 
+" g:BufKillCreateMappings {{{2
+" If set to 1, creates the various mapleader-based mappings.  By default this
+" is set to 1 ('true') but users may want to set to 0 ('false') in order to 
+" define their own mappings or to fix a mapping conflict with another plugin.
+if !exists('g:BufKillCreateMappings')
+  let g:BufKillCreateMappings = 1
+endif
+
+" g:BufKillCommandPrefix {{{2
+" A string that will act as the prefix to all BufKill user commands.  The
+" string must adhere to the user command guidelines established in the vim
+" help (see :help user-commands).  By default this is set to 'B' but users
+" may want to change this in order to define their own commands or to fix
+" a command conflict with another plugin.
+if !exists('g:BufKillCommandPrefix')
+  let g:BufKillCommandPrefix = 'B'
+endif
 
 " Commands {{{1
 "
-if !exists(':BA')
-  command -bang BA    :call <SID>GotoBuffer('#',"<bang>")
-endif
-if !exists(':BB')
-  command -bang BB    :call <SID>GotoBuffer('bufback',"<bang>")
-endif
-if !exists(':BF')
-  command -bang BF    :call <SID>GotoBuffer('bufforward',"<bang>")
-endif
-if !exists(':BD')
-  command -bang BD    :call <SID>BufKill('bd',"<bang>")
-endif
-if !exists(':BUN')
-  command -bang BUN   :call <SID>BufKill('bun',"<bang>")
-endif
-if !exists(':BD')
-  command -bang BD    :call <SID>BufKill('bd',"<bang>")
-endif
-if !exists(':BW')
-  command -bang BW    :call <SID>BufKill('bw',"<bang>")
-endif
-if !exists(':BUNDO')
-  command -bang BUNDO :call <SID>UndoKill()
-endif
+function! <SID>CreateUniqueCommand(lhs, rhs) 
+  let command = g:BufKillCommandPrefix.a:lhs
+  if !exists(':'.command)
+    exe 'command -bang '.command.' '.a:rhs
+  endif
+endfunction
+call <SID>CreateUniqueCommand('A'   , ':call <SID>GotoBuffer(''#'',"<bang>")')
+call <SID>CreateUniqueCommand('B'   , ':call <SID>GotoBuffer(''bufback'',"<bang>")')
+call <SID>CreateUniqueCommand('F'   , ':call <SID>GotoBuffer(''bufforward'',"<bang>")')
+call <SID>CreateUniqueCommand('D'   , ':call <SID>BufKill(''bd'',"<bang>")')
+call <SID>CreateUniqueCommand('UN'  , ':call <SID>BufKill(''bun'',"<bang>")')
+call <SID>CreateUniqueCommand('D'   , ':call <SID>BufKill(''bd'',"<bang>")')
+call <SID>CreateUniqueCommand('W'   , ':call <SID>BufKill(''bw'',"<bang>")')
+call <SID>CreateUniqueCommand('UNDO', ':call <SID>UndoKill()')
 
 " Keyboard mappings {{{1
 "
@@ -237,18 +244,20 @@ function! <SID>CreateUniqueMapping(lhs, rhs, ...)
   exec 'nmap <silent> <unique> '.a:lhs.' '.a:rhs
 endfunction
 
-call <SID>CreateUniqueMapping('<Leader>bb',   '<Plug>BufKillBack')
-call <SID>CreateUniqueMapping('<Leader>bf',   '<Plug>BufKillForward')
-call <SID>CreateUniqueMapping('<Leader>bun',  '<Plug>BufKillBun')
-call <SID>CreateUniqueMapping('<Leader>!bun', '<Plug>BufKillBangBun')
-call <SID>CreateUniqueMapping('<Leader>bd',   '<Plug>BufKillBd')
-call <SID>CreateUniqueMapping('<Leader>!bd',  '<Plug>BufKillBangBd')
-call <SID>CreateUniqueMapping('<Leader>bw',   '<Plug>BufKillBw')
-call <SID>CreateUniqueMapping('<Leader>!bw',  '<Plug>BufKillBangBw')
-call <SID>CreateUniqueMapping('<Leader>bundo','<Plug>BufKillUndo')
-call <SID>CreateUniqueMapping('<Leader>ba',   '<Plug>BufKillAlt')
-if g:BufKillOverrideCtrlCaret == 1
-  call <SID>CreateUniqueMapping('<C-^>', '<Plug>BufKillAlt', 'AllowDuplicate')
+if g:BufKillCreateMappings == 1
+    call <SID>CreateUniqueMapping('<Leader>bb',   '<Plug>BufKillBack')
+    call <SID>CreateUniqueMapping('<Leader>bf',   '<Plug>BufKillForward')
+    call <SID>CreateUniqueMapping('<Leader>bun',  '<Plug>BufKillBun')
+    call <SID>CreateUniqueMapping('<Leader>!bun', '<Plug>BufKillBangBun')
+    call <SID>CreateUniqueMapping('<Leader>bd',   '<Plug>BufKillBd')
+    call <SID>CreateUniqueMapping('<Leader>!bd',  '<Plug>BufKillBangBd')
+    call <SID>CreateUniqueMapping('<Leader>bw',   '<Plug>BufKillBw')
+    call <SID>CreateUniqueMapping('<Leader>!bw',  '<Plug>BufKillBangBw')
+    call <SID>CreateUniqueMapping('<Leader>bundo','<Plug>BufKillUndo')
+    call <SID>CreateUniqueMapping('<Leader>ba',   '<Plug>BufKillAlt')
+    if g:BufKillOverrideCtrlCaret == 1
+      call <SID>CreateUniqueMapping('<C-^>', '<Plug>BufKillAlt', 'AllowDuplicate')
+    endif
 endif
 
 function! <SID>BufKill(cmd, bang) "{{{1
